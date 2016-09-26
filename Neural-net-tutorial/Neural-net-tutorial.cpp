@@ -1,7 +1,5 @@
 // Neural-net-tutorial.cpp : Defines the entry point for the console application.
-//TODO: DONT FORGET BIAS
 
-#include "stdafx.h"
 #include <vector>
 #include <iostream>
 #include <stdio.h>
@@ -70,7 +68,7 @@ unsigned TrainingData::getNextInputs(std::vector<double> &inputVals) {
         }
     }
 
-    return inputVals.size();
+    return (unsigned int) inputVals.size();
 }
 
 unsigned TrainingData::getTargetOutputs(std::vector<double> &targetOutputVals) {
@@ -88,7 +86,7 @@ unsigned TrainingData::getTargetOutputs(std::vector<double> &targetOutputVals) {
             targetOutputVals.push_back(oneValue);
         }
     }
-    return targetOutputVals.size();
+    return (unsigned int) targetOutputVals.size();
 }
 
 struct Connection {
@@ -128,7 +126,7 @@ private:
     double sumDOW(const Layer &nextLayer) const;
 
     double m_outputVal;
-    double m_bias = 1;
+    double m_bias;
     std::vector<Connection> m_outputWeights;
     unsigned m_myIndex;
     double m_gradient;
@@ -212,6 +210,7 @@ Neuron::Neuron(unsigned numOutputs, unsigned myIndex) {
         m_outputWeights.back().weight = randomWeight();
 
     }
+    m_bias = 1;
 }
 
 //****************** class Net ******************
@@ -231,7 +230,7 @@ public:
 private:
     std::vector<Layer> m_layers; //m_layers[layerNum][neuronNum]
     double m_error;
-    double m_recentAverageError = 1;
+    double m_recentAverageError;
     static double m_recentAverageSmoothingFactor;
 };
 
@@ -268,7 +267,7 @@ void Net::backProp(const std::vector<double> &targetVals) {
         outputLayer[n].calcOutputGradients(targetVals[n]);
     }
     //2: Other layers
-    for (int layerNum = m_layers.size() - 2; layerNum > 0; --layerNum) {
+    for (unsigned layerNum = (unsigned int) (m_layers.size() - 2); layerNum > 0; --layerNum) {
         Layer &currentLayer = m_layers[layerNum];
         Layer &nextLayer = m_layers[layerNum + 1];
 
@@ -278,7 +277,7 @@ void Net::backProp(const std::vector<double> &targetVals) {
     }
 
     //For all layers from outputs to first hidden layer update connection weights
-    for (unsigned layerNum = m_layers.size() - 1; layerNum > 0; --layerNum) {
+    for (unsigned layerNum = (unsigned int) (m_layers.size() - 1); layerNum > 0; --layerNum) {
         Layer &layer = m_layers[layerNum];
         Layer &prevLayer = m_layers[layerNum - 1];
 
@@ -308,7 +307,7 @@ void Net::feedForward(const std::vector<double> &inputVals) {
 
 //Define the Net constructor:
 Net::Net(const std::vector<unsigned> &topology) {
-    unsigned numLayers = topology.size();
+    unsigned numLayers = (unsigned int) topology.size();
     for (unsigned layerNum = 0; layerNum < numLayers; ++layerNum) {
         //append
         m_layers.push_back(Layer());
@@ -319,38 +318,13 @@ Net::Net(const std::vector<unsigned> &topology) {
 
             //get last element in m_layers (Layer) and append a new neuron to it.
             m_layers.back().push_back(Neuron(numOutputs, neuronNum));
-            //std::cout << "Made a Neuron!" << std::endl;
         }
 
     }
+    m_recentAverageError = 0.5;
 
 }
 
-//Dummy main:
-//int main() {
-//    // e.g., {3, 2, 1} (3 layers, 1st - 3 nodes, 2nd - 2 nodes, 3rd - 1 node
-//    std::vector<unsigned> topology;
-//    topology.push_back(1);
-//    topology.push_back(2);
-//    topology.push_back(1);
-//
-//    //Construct
-//    Net myNet(topology);
-//
-//    std::vector<double> inputVals;
-//    inputVals.push_back(1.0);
-//    //Train
-//    myNet.feedForward(inputVals);
-//
-//    std::vector<double> targetVals;
-//    targetVals.push_back(1.0);
-//    myNet.backProp(targetVals);
-//    //Save results
-//
-//    std::vector<double> resultVals;
-//    myNet.getResults(resultVals);
-//    std::cout << resultVals[0];
-//}
 
 void showVectorVals(std::string label, std::vector<double> &v) {
     std::cout << label << " ";
@@ -362,7 +336,7 @@ void showVectorVals(std::string label, std::vector<double> &v) {
 }
 
 int main() {
-    TrainingData trainData("D:\\Programming\\Neural-tutorial\\Neural-net-tutorial\\tmp\\trainingData.txt");
+    TrainingData trainData("trainingData.txt");
 
     std::vector<unsigned> topology;
     trainData.getTopology(topology);
