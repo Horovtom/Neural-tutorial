@@ -134,7 +134,7 @@ public:
     void backProp(const std::vector<double> &targetVals);
 
     //getResults(resultVals) is a function that only reads the result, does not modify the Net object at all. Thats why its const
-    void getResults(std::vector<double> &resultVals) const {};
+    void getResults(std::vector<double> &resultVals) const;
 
 private:
     std::vector<Layer> m_layers; //m_layers[layerNum][neuronNum]
@@ -142,6 +142,14 @@ private:
     double m_recentAverageError;
     double m_recentAverageSmoothingFactor;
 };
+
+void Net::getResults(std::vector<double> &resultVals) const {
+    resultVals.clear();
+
+    for (int i = 0; i < m_layers.back().size(); ++i) {
+        resultVals.push_back(m_layers.back()[i].getOutputVal());
+    }
+}
 
 void Net::backProp(const std::vector<double> &targetVals) {
     //Calculate overall net error (RMS - root mean square)
