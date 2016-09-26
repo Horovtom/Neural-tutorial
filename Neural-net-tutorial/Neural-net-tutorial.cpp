@@ -128,6 +128,15 @@ void Net::backProp(const std::vector<double> &targetVals) {
     }
     
     //For all layers from outputs to first hidden layer update connection weights
+    for (unsigned layerNum = m_layers.size() - 1; layerNum > 0; --layerNum) {
+        Layer &layer = m_layers[layerNum];
+        Layer &prevLayer = m_layers[layerNum - 1];
+
+        for (int n = 0; n < layer.size(); ++n) {
+            layer[n].updateInputWeights(prevLayer);
+        }
+    }
+    
 }
 
 void Net::feedForward(const std::vector<double> &inputVals) {
