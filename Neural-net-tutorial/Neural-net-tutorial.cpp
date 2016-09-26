@@ -92,6 +92,8 @@ public:
 private:
     std::vector<Layer> m_layers; //m_layers[layerNum][neuronNum]
     double m_error;
+    double m_recentAverageError;
+    double m_recentAverageSmoothingFactor;
 };
 
 void Net::backProp(const std::vector<double> &targetVals) {
@@ -105,6 +107,10 @@ void Net::backProp(const std::vector<double> &targetVals) {
     }
     m_error /= outputLayer.size();
     m_error = sqrt(m_error);
+
+    //Implement a recent average measurement:
+
+    m_recentAverageError = (m_recentAverageError * m_recentAverageSmoothingFactor + m_error) / (m_recentAverageSmoothingFactor + 1.0);
 
     //Calculate output layer gradients
 
