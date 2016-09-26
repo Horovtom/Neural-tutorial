@@ -22,23 +22,52 @@ typedef std::vector<Neuron> Layer;
 class Neuron {
 public:
     Neuron(unsigned numOutputs, unsigned myIndex);
-    void setOutputVal(const double val) { m_outputVal = val; }
-    double getOutputVal(void) const { return m_outputVal; }
     void feedForward(const Layer &prevLayer);
     void calcOutputGradients(double targetVal);
     void calcHiddenGradients(const Layer &nextLayer);
+    void updateInputWeights(Layer &prevLayer);
+    void setOutputVal(const double val) { m_outputVal = val; }
+    double getOutputVal(void) const { return m_outputVal; }
 
 private:
+    static double eta;  //[0,0 ... 1,0] overall net training rate
+    static double alpha; //[0,0 ... 1,0] multiplier of last weight change (momentum)
     static double randomWeight(void) { return rand() / double(RAND_MAX); } //This returns random value between 0 and 1
-    double m_outputVal;
     static double activationFunction(double x);
     static double activationFunctionDerivative(double x);
-    double m_bias;
     double sumDOW(const Layer &nextLayer) const;
+
+    double m_outputVal;
+    double m_bias;
     std::vector<Connection> m_outputWeights;
     unsigned m_myIndex;
     double m_gradient;
+
+
 };
+
+double Neuron::eta = 0.15;
+double Neuron::alpha = 0.5;
+
+void Neuron::updateInputWeights(Layer &prevLayer) {
+    //The weights to be update are in the Connection container in the neurons in the preceding layer
+
+    for (int i = 0; i < prevLayer.size(); ++i) {
+        Neuron &neuron = prevLayer[i];
+        double oldDeltaWeight = neuron.m_outputWeights[m_myIndex].deltaWeight;
+        double newDeltaWeight =
+                //Individual input, magnified by the gradient and train rate:
+                eta
+                * neuron.getOutputVal()
+                * m_gradient
+                //Also add momentum = a fraction of the previous delta weight
+                + alpha
+                * oldDeltaWeight;
+
+        neuron.m_outputWeights[m_myIndex].deltaWeight = newDeltaWeight;
+        neuron.m_outputWeights[m_myIndex].weight += newDeltaWeight;
+    }
+}
 
 double Neuron::sumDOW(const Layer &nextLayer) const {
     double sum = 0.0;
