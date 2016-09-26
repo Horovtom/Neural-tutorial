@@ -12,13 +12,16 @@
 #include <sstream>
 
 
-class TrainingData{
+class TrainingData {
 public:
     TrainingData(const std::string filename);
-    bool isEof(void) { return m_trainingDataFile.eof();}
+
+    bool isEof(void) { return m_trainingDataFile.eof(); }
+
     void getTopology(std::vector<unsigned> &topology);
 
     unsigned getNextInputs(std::vector<double> &inputVals);
+
     unsigned getTargetOutputs(std::vector<double> &targetOutputVals);
 
 
@@ -33,11 +36,11 @@ void TrainingData::getTopology(std::vector<unsigned> &topology) {
     std::getline(m_trainingDataFile, line);
     std::stringstream ss(line);
     ss >> label;
-    if (this->isEof() || label.compare("topology:") != 0){
+    if (this->isEof() || label.compare("topology") != 0) {
         abort();
     }
 
-    while (!ss.eof()){
+    while (!ss.eof()) {
         unsigned n;
         ss >> n;
         topology.push_back(n);
@@ -60,9 +63,9 @@ unsigned TrainingData::getNextInputs(std::vector<double> &inputVals) {
     std::string label;
     ss >> label;
 
-    if (label.compare("in:") == 0){
+    if (label.compare("in:") == 0) {
         double oneValue;
-        while (ss >> oneValue){
+        while (ss >> oneValue) {
             inputVals.push_back(oneValue);
         }
     }
@@ -79,9 +82,9 @@ unsigned TrainingData::getTargetOutputs(std::vector<double> &targetOutputVals) {
 
     std::string label;
     ss >> label;
-    if (label.compare("out:") == 0){
+    if (label.compare("out:") == 0) {
         double oneValue;
-        while(ss>>oneValue){
+        while (ss >> oneValue) {
             targetOutputVals.push_back(oneValue);
         }
     }
@@ -223,13 +226,16 @@ public:
     //getResults(resultVals) is a function that only reads the result, does not modify the Net object at all. Thats why its const
     void getResults(std::vector<double> &resultVals) const;
 
-    double getRecentAverageError(void) const {return m_recentAverageError;}
+    double getRecentAverageError(void) const { return m_recentAverageError; }
+
 private:
     std::vector<Layer> m_layers; //m_layers[layerNum][neuronNum]
     double m_error;
-    double m_recentAverageError;
-    double m_recentAverageSmoothingFactor;
+    double m_recentAverageError = 1;
+    static double m_recentAverageSmoothingFactor;
 };
+
+double Net::m_recentAverageSmoothingFactor = 100.0; // Number of training samples to average over
 
 void Net::getResults(std::vector<double> &resultVals) const {
     resultVals.clear();
@@ -324,7 +330,7 @@ Net::Net(const std::vector<unsigned> &topology) {
 //int main() {
 //    // e.g., {3, 2, 1} (3 layers, 1st - 3 nodes, 2nd - 2 nodes, 3rd - 1 node
 //    std::vector<unsigned> topology;
-//    topology.push_back(3);
+//    topology.push_back(1);
 //    topology.push_back(2);
 //    topology.push_back(1);
 //
@@ -332,16 +338,18 @@ Net::Net(const std::vector<unsigned> &topology) {
 //    Net myNet(topology);
 //
 //    std::vector<double> inputVals;
+//    inputVals.push_back(1.0);
 //    //Train
 //    myNet.feedForward(inputVals);
 //
 //    std::vector<double> targetVals;
+//    targetVals.push_back(1.0);
 //    myNet.backProp(targetVals);
 //    //Save results
 //
 //    std::vector<double> resultVals;
 //    myNet.getResults(resultVals);
-//
+//    std::cout << resultVals[0];
 //}
 
 void showVectorVals(std::string label, std::vector<double> &v) {
@@ -354,7 +362,7 @@ void showVectorVals(std::string label, std::vector<double> &v) {
 }
 
 int main() {
-    TrainingData trainData("/tmp/trainingData.txt");
+    TrainingData trainData("D:\\Programming\\Neural-tutorial\\Neural-net-tutorial\\tmp\\trainingData.txt");
 
     std::vector<unsigned> topology;
     trainData.getTopology(topology);
@@ -384,7 +392,7 @@ int main() {
         myNet.backProp(targetVals);
 
         //Report how well the training is working, average over recent samples:
-        std::cout < "Net recent average error: " << myNet.getRecentAverageError() << std::endl;
+        std::cout << "Net recent average error: " << myNet.getRecentAverageError() << std::endl;
     }
 
     std::cout << std::endl << "Done" << std::endl;
