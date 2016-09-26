@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <cstdlib>
 #include <cassert>
-
+#include <cmath>
 
 struct Connection {
 	double weight, deltaWeight;
@@ -28,10 +28,24 @@ public:
 private:
 	static double randomWeight(void) { return rand() / double(RAND_MAX); } //This returns random value between 0 and 1
 	double m_outputVal;
+	static double activationFunction(double x);
+	static double activationFunctionDerivative(double x);
 	double m_bias;
 	std::vector<Connection> m_outputWeights;
 	unsigned m_myIndex;
 };
+
+//This is gonna be a hyperbolic tangent function
+double Neuron::activationFunction(double x) {
+	// tanh - output range [-1,0...1,0]
+	return tanh(x);
+}
+
+double Neuron::activationFunctionDerivative(double x) {
+	// tanh derivative
+	double tan = tanh(x);
+	return 1.0 - tan * tan;
+}
 
 void Neuron::feedForward(const Layer &prevLayer) {
 	double sum = 0.0;
@@ -40,6 +54,11 @@ void Neuron::feedForward(const Layer &prevLayer) {
 	for (unsigned n = 0; n < prevLayer.size(); ++n) {
 		sum += prevLayer[n].getOutputVal() * prevLayer[n].m_outputWeights[m_myIndex].weight;
 	}
+
+	sum += m_bias;
+
+	//Applying a static activationfunction
+	m_outputVal = Neuron::activationFunction(sum);
 }
 
 Neuron::Neuron(unsigned numOutputs, unsigned myIndex) {
@@ -56,13 +75,23 @@ class Net {
 public:
 	Net(const std::vector<unsigned> &topology);
 	void feedForward(const std::vector<double> &inputVals) {};
-	void backProp(const std::vector<double> &targetVals) {};
+	void backProp(const std::vector<double> &targetVals);
 	//getResults(resultVals) is a function that only reads the result, does not modify the Net object at all. Thats why its const
 	void getResults(std::vector<double> &resultVals) const {};
 
 private:
 	std::vector<Layer> m_layers; //m_layers[layerNum][neuronNum]
 };
+
+void Net::backProp(const std::vector<double> &targetVals) {
+	//Calculate overall net error (RMS - root mean square)
+
+	//Calculate output layer gradients
+
+	//Calculat gradients on hidden layers
+
+	//For all layers from outputs to first hidden layer
+}
 
 void Net::feedForward(const std::vector<double> &inputVals) {
 	assert(inputVals.size() == m_layers[0].size());
@@ -93,7 +122,7 @@ Net::Net(const std::vector<unsigned> &topology) {
 		for (unsigned neuronNum = 0; neuronNum < topology[layerNum]; ++neuronNum) {
 
 			//get last element in m_layers (Layer) and append a new neuron to it.
-			m_layers.back().push_back(Neuron(numOutputs));
+			m_layers.back().push_back(Neuron(numOutputs, neuronNum));
 			std::cout << "Made a Neuron!" << std::endl;
 		}
 
