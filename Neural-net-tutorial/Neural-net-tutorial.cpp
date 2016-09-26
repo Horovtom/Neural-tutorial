@@ -5,20 +5,37 @@
 #include <vector>
 #include <iostream>
 
-class Neuron;
+class Neuron {};
 typedef std::vector<Neuron> Layer;
 
 class Net {
-public: 
+public:
 	Net(const std::vector<unsigned> &topology);
-	void feedForward(const std::vector<double> &inputVals);
-	void backProp(const std::vector<double> &targetVals);
+	void feedForward(const std::vector<double> &inputVals) {};
+	void backProp(const std::vector<double> &targetVals) {};
 	//getResults(resultVals) is a function that only reads the result, does not modify the Net object at all. Thats why its const
-	void getResults(std::vector<double> &resultVals) const;
+	void getResults(std::vector<double> &resultVals) const {};
 
 private:
 	std::vector<Layer> m_layers; //m_layers[layerNum][neuronNum]
 };
+
+//Define the Net constructor:
+Net::Net(const std::vector<unsigned> &topology) {
+	unsigned numLayers = topology.size;
+	for (unsigned layerNum = 0; layerNum < numLayers; ++layerNum) {
+		//append
+		m_layers.push_back(Layer());
+
+		//We made layer: add neurons to layer
+		for (unsigned neuronNum = 0; neuronNum < topology[layerNum]; ++neuronNum) {
+			//get last element in m_layers (Layer) and append a new neuron to it.
+			m_layers.back().push_back(Neuron());
+		}
+
+	}
+
+}
 
 int main()
 {
@@ -26,7 +43,7 @@ int main()
 	std::vector<unsigned> topology;
 	//Construct
 	Net myNet(topology);
-	
+
 	std::vector<double> inputVals;
 	//Train
 	myNet.feedForward(inputVals);
