@@ -113,9 +113,20 @@ void Net::backProp(const std::vector<double> &targetVals) {
     m_recentAverageError = (m_recentAverageError * m_recentAverageSmoothingFactor + m_error) / (m_recentAverageSmoothingFactor + 1.0);
 
     //Calculate output layer gradients
+    //1: The last layer (output layer)
+    for (int n = 0; n < outputLayer.size(); ++n) {
+        outputLayer[n].calcOutputGradients(targetVals[n]);
+    }
+    //2: Other layers
+    for (int layerNum = m_layers.size() - 2; layerNum > 0 ; --layerNum) {
+        Layer &currentLayer = m_layers[layerNum];
+        Layer &nextLayer = m_layers[layerNum + 1];
 
-    //Calculat gradients on hidden layers
-
+        for (int n = 0; n < currentLayer.size(); ++n) {
+            currentLayer[n].calcHiddenGradients(nextLayer);
+        }
+    }
+    
     //For all layers from outputs to first hidden layer update connection weights
 }
 
