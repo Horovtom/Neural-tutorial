@@ -20,20 +20,30 @@ typedef std::vector<Neuron> Layer;
 //****************** class Neuron ******************
 class Neuron {
 public:
-	Neuron(unsigned numOutputs);
+	Neuron(unsigned numOutputs, unsigned myIndex);
 	void setOutputVal(const double val) { m_outputVal = val; }
 	double getOutputVal(void) const { return m_outputVal; }
-	void feedForwards(const Layer &prevLayer);
+	void feedForward(const Layer &prevLayer);
 
 private:
 	static double randomWeight(void) { return rand() / double(RAND_MAX); } //This returns random value between 0 and 1
 	double m_outputVal;
 	double m_bias;
 	std::vector<Connection> m_outputWeights;
-
+	unsigned m_myIndex;
 };
 
-Neuron::Neuron(unsigned numOutputs) {
+void Neuron::feedForward(const Layer &prevLayer) {
+	double sum = 0.0;
+
+	//Sum outputs from previous layer and add bias to it
+	for (unsigned n = 0; n < prevLayer.size(); ++n) {
+		sum += prevLayer[n].getOutputVal() * prevLayer[n].m_outputWeights[m_myIndex].weight;
+	}
+}
+
+Neuron::Neuron(unsigned numOutputs, unsigned myIndex) {
+	m_myIndex = myIndex;
 	for (unsigned c = 0; c < numOutputs; ++c) {
 		m_outputWeights.push_back(Connection());
 		m_outputWeights.back().weight = randomWeight();
