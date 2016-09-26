@@ -22,25 +22,43 @@ typedef std::vector<Neuron> Layer;
 class Neuron {
 public:
     Neuron(unsigned numOutputs, unsigned myIndex);
-
     void setOutputVal(const double val) { m_outputVal = val; }
-
     double getOutputVal(void) const { return m_outputVal; }
-
     void feedForward(const Layer &prevLayer);
+    void calcOutputGradients(double targetVal);
+    void calcHiddenGradients(const Layer &nextLayer);
 
 private:
     static double randomWeight(void) { return rand() / double(RAND_MAX); } //This returns random value between 0 and 1
     double m_outputVal;
-
     static double activationFunction(double x);
-
     static double activationFunctionDerivative(double x);
-
     double m_bias;
+    double sumDOW(const Layer &nextLayer) const;
     std::vector<Connection> m_outputWeights;
     unsigned m_myIndex;
+    double m_gradient;
 };
+
+double Neuron::sumDOW(const Layer &nextLayer) const {
+    double sum = 0.0;
+
+    for (int i = 0; i < nextLayer.size(); ++i) {
+        sum += m_outputWeights[i].weight * nextLayer[i].m_gradient;
+    }
+
+    return sum;
+}
+
+void Neuron::calcHiddenGradients(const Layer &nextLayer) {
+    double dow = sumDOW(nextLayer);
+    m_gradient = dow * Neuron::activationFunctionDerivative(m_outputVal);
+}
+
+void Neuron::calcOutputGradients(double targetVal) {
+    double delta = targetVal - m_outputVal;
+    m_gradient = delta * Neuron::activationFunctionDerivative(m_outputVal);
+}
 
 //This is gonna be a hyperbolic tangent function
 double Neuron::activationFunction(double x) {
