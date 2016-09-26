@@ -1,14 +1,43 @@
 // Neural-net-tutorial.cpp : Defines the entry point for the console application.
-//
+//TODO: DONT FORGET BIAS
 
 #include "stdafx.h"
 #include <vector>
 #include <iostream>
 #include <stdio.h>
+#include <cstdlib>
 
-class Neuron {};
+
+struct Connection {
+	double weight, deltaWeight;
+};
+
+class Neuron;
 typedef std::vector<Neuron> Layer;
 
+
+//****************** class Neuron ******************
+class Neuron {
+public:
+	Neuron(unsigned numOutputs);
+
+
+private:
+	static double randomWeight(void) { return rand() / double(RAND_MAX); } //This returns random value between 0 and 1
+	double m_outputVal;
+	double m_bias;
+	std::vector<Connection> m_outputWeights;
+
+};
+
+Neuron::Neuron(unsigned numOutputs) {
+	for (unsigned c = 0; c < numOutputs; ++c) {
+		m_outputWeights.push_back(Connection());
+		m_outputWeights.back().weight = randomWeight();
+
+	}
+};
+//****************** class Net ******************
 class Net {
 public:
 	Net(const std::vector<unsigned> &topology);
@@ -27,11 +56,13 @@ Net::Net(const std::vector<unsigned> &topology) {
 	for (unsigned layerNum = 0; layerNum < numLayers; ++layerNum) {
 		//append
 		m_layers.push_back(Layer());
+		unsigned numOutputs = layerNum == topology.size() - 1 ? 0 : topology[layerNum + 1];
 
 		//We made layer: add neurons to layer
 		for (unsigned neuronNum = 0; neuronNum < topology[layerNum]; ++neuronNum) {
+
 			//get last element in m_layers (Layer) and append a new neuron to it.
-			m_layers.back().push_back(Neuron());
+			m_layers.back().push_back(Neuron(numOutputs));
 			std::cout << "Made a Neuron!" << std::endl;
 		}
 
@@ -60,5 +91,6 @@ int main()
 
 	std::vector<double> resultVals;
 	myNet.getResults(resultVals);
+
 }
 
