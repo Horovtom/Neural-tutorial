@@ -6,6 +6,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <cstdlib>
+#include <cassert>
 
 
 struct Connection {
@@ -20,7 +21,9 @@ typedef std::vector<Neuron> Layer;
 class Neuron {
 public:
 	Neuron(unsigned numOutputs);
-
+	void setOutputVal(const double val) { m_outputVal = val; }
+	double getOutputVal(void) const { return m_outputVal; }
+	void feedForwards(const Layer &prevLayer);
 
 private:
 	static double randomWeight(void) { return rand() / double(RAND_MAX); } //This returns random value between 0 and 1
@@ -36,7 +39,8 @@ Neuron::Neuron(unsigned numOutputs) {
 		m_outputWeights.back().weight = randomWeight();
 
 	}
-};
+}
+
 //****************** class Net ******************
 class Net {
 public:
@@ -49,6 +53,23 @@ public:
 private:
 	std::vector<Layer> m_layers; //m_layers[layerNum][neuronNum]
 };
+
+void Net::feedForward(const std::vector<double> &inputVals) {
+	assert(inputVals.size() == m_layers[0].size());
+
+	//feed the first layer (input neurons)
+	for (unsigned i = 0; i < inputVals.size(); ++i) {
+		m_layers[0][i].setOutputVal(inputVals[i]);
+	}
+
+	//Forward propagate
+	for (unsigned layerNum = 1; layerNum < m_layers.size(); ++layerNum) {
+		Layer &prevLayer = m_layers[layerNum - 1];
+		for (unsigned n = 0; n < m_layers[layerNum].size(); ++n){
+			m_layers[layerNum][n].feedForward(prevLayer);
+		}
+	}
+}
 
 //Define the Net constructor:
 Net::Net(const std::vector<unsigned> &topology) {
